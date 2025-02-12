@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Message Thread</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding-top: 60px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-thread {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .message.sent {
+            background-color: #e0f7fa;
+            text-align: right;
+        }
+
+        .message.received {
+            background-color: #e1bee7;
+            text-align: left;
+        }
+
+        .message p {
+            margin: 0;
+        }
+
+        .message small {
+            display: block;
+            margin-top: 5px;
+            color: #888;
+        }
+
+        .send-message {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .send-message textarea {
+            width: 130%;
+            height: 75%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            resize: none;
+            font-size: 14px;
+        }
+
+        .send-message textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        .send-message button {
+            padding: 12px 25px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .send-message button:hover {
+            background-color: #0056b3;
+        }
+
+        .send-message button:active {
+            background-color: #004494;
+        }
+
+        .toolbar {
+            background-color: #007BFF;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+        }
+        .toolbar-right{
+            margin-right: 30px;
+        }
+        .toolbar-left a, .toolbar-right a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-size: 16px;
+        }
+
+        .toolbar-left a:first-child {
+            margin-left: 0;
+        }
+
+        .toolbar-right a:hover {
+            text-decoration: underline;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #00418d;
+            margin-bottom: 5px;
+        }
+
+        .message p {
+            margin: 5px 0;
+        }
+
+        .message.sent .username {
+            text-align: right;
+        }
+
+        .message.received .username {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <div class="toolbar-left">
+        <a id="home" href="/apartments" type="button" class="btn btn-primary">Home</a>
+        <a id="back2" th:if="${thread.getUser1().getUsername()!=#authentication.name}"
+           th:href="@{'/messages/conversation/all/{id}'(id=${thread.getAdvertisement().getId()})}" type="button" class="btn btn-primary">See other chats</a>
+    </div>
+    <div class="toolbar-right">
+        <a id="back" th:href="@{'/apartments/details/{id}'(id=${thread.getAdvertisement().getId()})}" type="button" class="btn btn-primary">Back to advert details</a>
+        <a href="/login" sec:authorize="!isAuthenticated()">Login</a>
+        <a href="/register" sec:authorize="!isAuthenticated()">Register</a>
+        <a href="/apartments/add/ad">Add an Ad</a>
+        <a href="/logout" sec:authorize="isAuthenticated()">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Conversation</h1>
+
+    <div class="message-thread">
+        <div th:each="message : ${messages}">
+            <div th:classappend="${message.sender.username} == ${currentUser.username} ? 'message sent' : 'message received'">
+                <p id="username" class="username" th:text="${message.getSender().username}"></p>
+                <p id="content" class="content" th:text="${message.content}">Message content here</p>
+                <small th:text="${message.sentAt}">Timestamp</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="send-message">
+        <form th:action="@{'/messages/send/' + ${threadId}}" method="post">
+            <textarea name="content" rows="3" placeholder="Type your message..."></textarea>
+            <input type="hidden" name="user" th:value="${currentUser.username}">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

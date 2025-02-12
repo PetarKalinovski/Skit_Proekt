@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Message Threads</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding-top: 60px; /* Adjust padding to avoid content being hidden under toolbar */
+        }
+
+        .toolbar {
+            background-color: #007BFF; /* Blue color */
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .toolbar-left a, .toolbar-right a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-size: 16px;
+        }
+
+        .toolbar-left a:first-child {
+            margin-left: 0; /* No margin for the first link on the left */
+        }
+
+        .toolbar-right a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        ul li:last-child {
+            border-bottom: none;
+        }
+
+        ul li p {
+            margin: 0;
+            color: #555;
+        }
+
+        ul li a {
+            color: #007BFF;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        ul li a:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <div class="toolbar-left">
+        <a id="home" href="/apartments" type="button" class="btn btn-primary">Home</a>
+    </div>
+    <div class="toolbar-right">
+        <a id="back" th:href="@{'/apartments/details/{id}'(id=${messagethreads.getFirst().getAdvertisement().getId()})}" type="button" class="btn btn-primary">Back to advert details</a>
+        <a href="/login" sec:authorize="!isAuthenticated()">Login</a>
+        <a href="/register" sec:authorize="!isAuthenticated()">Register</a>
+        <a href="/apartments/add/ad">Add an Ad</a>
+        <a href="/logout" sec:authorize="isAuthenticated()">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Message Threads</h2>
+    <ul th:each="messageThread : ${messagethreads}">
+        <li th:if="${messageThread.getUser1().getUsername() != #authentication.name}">
+            <p th:text="'Chat with ' + ${messageThread.getUser1().getUsername()}"></p>
+            <a th:href="@{'/messages/conversation/{id}'(id=${messageThread.getId()})}">See chat</a>
+        </li>
+    </ul>
+</div>
+</body>
+</html>

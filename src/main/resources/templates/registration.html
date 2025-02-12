@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+<style>
+
+  .container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+ body{
+   font-family: Arial, sans-serif;
+ }
+
+  .form-signin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .form-signin-heading {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+  }
+
+  .form-control:focus {
+    border-color: #007BFF;
+    outline: none;
+  }
+
+  .form-check-input {
+    margin-right: 5px;
+  }
+
+  .form-check-label {
+    margin-right: 20px;
+    color: #333;
+  }
+
+
+  .btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .btn-primary {
+    background-color: #007BFF;
+    color: #ffffff;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  .btn-light {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .btn-light:hover {
+    background-color: #e2e6ea;
+    color: #333;
+  }
+
+  .text-danger {
+    color: #dc3545;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+
+</style>
+</head>
+<body>
+<div class="container">
+<!--  <h1 th:if="${hasError}" th:text="${error}"></h1>-->
+</div>
+  <div class="container">
+    <form class="form-signin mt-xl-5" method="post" action="/register">
+      <h2 class="form-signin-heading">Register</h2>
+      <p>
+        <label for="username" class="sr-only">Username</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Username" required=""
+               autofocus="">
+      </p>
+      <p>
+        <label for="password" class="sr-only">Password</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Password"
+               required="">
+      </p>
+      <p>
+        <label for="repeatPassword" class="sr-only">Repeat Password</label>
+        <input type="password" id="repeatPassword" name="repeatPassword" class="form-control"
+               placeholder="Repeat Password" required="">
+      </p>
+      <p>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" name="role" type="radio" id="ROLE_ADMIN" value="ROLE_ADMIN">
+        <label class="form-check-label" for="ROLE_ADMIN">ROLE_ADMIN</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" name="role"  type="radio" id="ROLE_USER" value="ROLE_USER">
+        <label class="form-check-label" for="ROLE_USER">ROLE_USER</label>
+      </div>
+      </p>
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign up</button>
+    </form>
+    <div style="margin-top: 30px">
+    <a href="/login" class="btn btn-block btn-light">Already have an account? Login here!</a>
+    </div>
+  </div>
+</body>
+</html>

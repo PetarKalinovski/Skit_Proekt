@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Add an apartment</title>
+</head>
+<style>
+
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+    }
+
+
+    .toolbar {
+        background-color: #007BFF; /* Blue color */
+        color: white;
+        display: flex;
+        justify-content: flex-end;
+        padding: 10px 20px;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .toolbar-element {
+        margin-right: 40px;
+    }
+
+    .toolbar a {
+        color: white;
+        text-decoration: none;
+        margin-left: 15px;
+        font-size: 16px;
+    }
+
+    .toolbar a:hover {
+        text-decoration: underline;
+    }
+
+
+    form {
+        max-width: 500px;
+        margin: 150px auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    form div {
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    form label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    form input[type="number"],
+    form select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-sizing: border-box;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+    }
+
+    form input[type="number"]:focus,
+    form select:focus {
+        border-color: #007BFF;
+        outline: none;
+    }
+
+    form button,
+    form a.edit-item {
+        display: inline-block;
+        width: 100%;
+        padding: 10px;
+        background-color: #007BFF;
+        color: white;
+        text-align: center;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+
+    form button:hover,
+    form a.edit-item:hover {
+        background-color: #0056b3;
+    }
+
+    footer {
+        background-color: #007BFF;
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+        position: relative;
+        width: 100%;
+        bottom: 0;
+    }
+
+    footer p {
+        margin: 0;
+        font-size: 0.9em;
+    }
+
+</style>
+<body>
+<!-- The form should submit to PostsController.create or PostsController.update,
+     depending on whether we are creating or editing a post -->
+
+
+<div class="toolbar">
+    <div class="toolbar-element">
+        <a id="back" href="/apartments" type="button" class="btn btn-primary">Back to main page</a>
+    </div>
+    <div class="toolbar-element " sec:authorize="!isAuthenticated()">
+        <a href="/login">Login</a>
+    </div>
+    <div class="toolbar-element " sec:authorize="!isAuthenticated()">
+        <a href="/register">Register</a>
+    </div>
+    <div class="toolbar-element" >
+        <a href="/apartments/add/ad">Add an Ad</a>
+    </div>
+    <div class="toolbar-element">
+        <a href="/logout" sec:authorize="isAuthenticated()">Logout</a>
+    </div>
+</div>
+
+<form method="post" th:action="@{${apa!=null}? '/apart/'+${apa.id} : '/apart'}">
+    <div>
+        <label for="Title">Title</label>
+        <input type="text"
+               id="Title"
+               name="title"
+               th:value="${apa?.getTitle()}"
+               required>
+    </div>
+    <div>
+        <label for="address">Address</label>
+        <input type="text"
+               id="address"
+               name="address"
+               th:value="${apa?.getAddress()}"
+               required>
+    </div>
+
+    <div>
+        <label for="numRooms">Number of rooms</label>
+        <input type="number"
+               id="numRooms"
+               name="numRooms"
+               th:value="${apa?.getNumRooms()}"
+               required>
+    </div>
+
+    <div>
+        <label for="size">Size in square meters</label>
+        <input type="text"
+               id="size"
+               name="size"
+               th:value="${apa?.getSize()}"
+               required>
+    </div>
+
+    <div>
+        <label for="imageUrls">Image URLs</label>
+        <div id="imageUrls">
+            <div th:each="imageUrl, iterStat : ${apa?.getImageUrls()}">
+                <input type="url" name="imageUrls" th:value="${imageUrl}" placeholder="Enter image URL">
+            </div>
+            <div th:each="i : ${#numbers.sequence(1, 10 - (apa?.getImageUrls()?.size() ?: 0))}">
+                <input type="url" name="imageUrls" placeholder="Enter image URL">
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <label for="Municipality"> Municipality</label><br/>
+        <select id="Municipality" name="municipality" size="5">
+            <option th:each="mu: ${municipalities}" th:value="${mu}" th:text="${mu.name()}" th:selected="${apa?.municipality?.equals(mu)}">[postType]</option>
+        </select>
+    </div>
+
+    <button id="submit" type="submit">Submit</button>
+</form>
+
+<footer>
+    <p>&copy; 2024 Apartment Finder. All rights reserved.</p>
+</footer>
+</body>
+</html>

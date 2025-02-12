@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Apartment Listings</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        .toolbar {
+            background-color: #007BFF; /* Blue color */
+            color: white;
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .toolbar-element{
+            margin-right: 40px;
+        }
+        .toolbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-size: 16px;
+        }
+
+        .toolbar a:hover {
+            text-decoration: underline;
+        }
+
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            margin: 60px auto 20px; /* Adjust for toolbar height */
+            padding: 20px;
+            gap: 40px;
+        }
+
+
+        .sidebar {
+            flex: 0 0 250px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: auto;
+            margin-top: -80px;
+            /*position: absolute;*/
+            /*left: 20px;*/
+            /*top: 200px;*/
+        }
+
+
+        .content-container {
+            /*margin-left: 50px;*/
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .sidebar #filter-form {
+            display: block;
+        }
+
+
+        .card-container {
+            flex: 1;
+            display: flex;
+            margin-left: 100px;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: flex-start;
+        }
+
+
+        .header-container {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+            color: white;
+            text-align: center;
+        }
+
+
+        .header-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://content.r9cdn.net/rimg/dimg/98/9a/27fe7b67-city-18146-165110baf30.jpg?crop=true&width=1366&height=768&xhint=1851&yhint=1035') no-repeat center center;
+            background-size: cover;
+            z-index: 1;
+            filter: brightness(65%);
+        }
+
+
+        .header-content {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .header-content h1 {
+            margin: 0;
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-content p {
+            margin: 10px 0 0;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+
+        footer {
+            background-color: #007BFF;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            width: 100%;
+            bottom: 0;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+
+        .dropdown-btn {
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            text-align: left;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .dropdown-btn:after {
+            content: '\25bc';
+            float: right;
+            margin-left: 10px;
+        }
+
+        .dropdown-btn.active:after {
+            content: '\25b2';
+        }
+
+        /* Filter form styling */
+        #filter-form {
+            display: none;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        #filter-form label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+
+        #filter-form select, #filter-form input {
+            width: calc(100% - 22px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        #filter-form button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        #filter-form button:hover {
+            background-color: #0056b3;
+        }
+
+
+        .range-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        .range-values {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .range-values input[type="number"] {
+            width: 70px;
+            padding: 5px;
+            margin: 0 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+            margin-bottom: 10px;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #007BFF;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        #priceRangeValue, #ratingRangeValue, #sizeRangeValue {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            width: 300px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            margin-left: 20px;
+            text-align: center;
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 15px;
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            margin: 0;
+        }
+
+        .card-details {
+            color: #666;
+            margin-top: 10px;
+        }
+
+
+        .add-item {
+            display: inline-block;
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 3px;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .add-item:hover {
+            background-color: #0056b3;
+        }
+
+        .card-actions {
+            margin-top: 15px;
+        }
+
+        .card-actions button, .card-actions a {
+            background-color: #007BFF;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .card-actions button:hover, .card-actions a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+
+<div class="toolbar">
+    <div class="toolbar-element " sec:authorize="!isAuthenticated()">
+    <a href="/login">Login</a>
+    </div>
+    <div class="toolbar-element " sec:authorize="!isAuthenticated()">
+    <a href="/register">Register</a>
+    </div>
+    <div class="toolbar-element" >
+    <a href="/apartments/add/ad">Add an Ad</a>
+    </div>
+    <div class="toolbar-element">
+    <a href="/logout" sec:authorize="isAuthenticated()">Logout</a>
+    </div>
+</div>
+
+
+<div class="header-container">
+
+    <div class="header-background"></div>
+
+    <div class="header-overlay"></div>
+
+
+    <div class="header-content">
+        <h1>Find Your Dream Apartment</h1>
+        <p>Explore the best apartments available for sale or rent</p>
+    </div>
+</div>
+
+
+<div class="main-container">
+
+    <div class="sidebar">
+        <form id="filter-form">
+            <label for="municipality">Municipality</label>
+            <select id="municipality" name="municipality">
+                <option value="">All</option>
+                <option th:each="mu: ${municipalities}" th:value="${mu.name()}" th:text="${mu.name()}">[tag.name]</option>
+            </select>
+
+
+            <label for="priceRange">Price Range</label>
+            <div class="range-container" id="priceRange">
+                <input id="priceMore" name="priceMore" type="range" th:max="${bigPrice}" min="0" max="1000000" value="0" oninput="updatePriceRange()">
+                <input id="priceLess" name="priceLess" type="range" th:max="${bigPrice}" min="0" max="1000000" th:value="${bigPrice}" value="1000000" oninput="updatePriceRange()">
+                <div class="range-values">
+                    <input type="number" id="priceMinInput" min="0" th:max="${bigPrice}" max="1000000" value="0" oninput="updatePriceFromInput()">
+                    <span> - </span>
+                    <input type="number" id="priceMaxInput" min="0" th:max="${bigPrice}" max="1000000" th:value="${bigPrice}"  value="1000000" oninput="updatePriceFromInput()">
+                    <span> EUR</span>
+                </div>
+            </div>
+
+
+            <label for="ratingRange">Average Rating Range</label>
+            <div class="range-container" id="ratingRange">
+                <input id="avgRatingMore" name="avgRatingMore" type="range" min="0" max="5" step="0.1" value="0" oninput="updateRatingRange()">
+                <input id="avgRatingLess" name="avgRatingLess" type="range" min="0" max="5" step="0.1" value="5" oninput="updateRatingRange()">
+                <div class="range-values">
+                    <input type="number" id="ratingMinInput" min="0"  max="5" step="0.1" value="0" oninput="updateRatingFromInput()">
+                    <span> - </span>
+                    <input type="number" id="ratingMaxInput" min="0" max="5" step="0.1" value="5" oninput="updateRatingFromInput()">
+                </div>
+            </div>
+
+            <label for="sizeRange">Size Range</label>
+            <div id="sizeRange">
+            <input type="range" id="sizeMore" name="sizeMore" th:max="${bigSize}" min="0" max="2000"  value="0" oninput="updateSizeRange()">
+            <input type="range" id="sizeLess" name="sizeLess" th:max="${bigSize}" min="0" max="2000" th:value="${bigSize}" value="2000" oninput="updateSizeRange()">
+            <div class="range-values">
+                <input type="number" id="sizeMinInput" th:max="${bigSize}" min="0" max="2000" value="0" oninput="updateSizeFromInput()">
+               <span> - </span>
+                <input type="number" id="sizeMaxInput" th:max="${bigSize}" min="0" max="2000" th:value="${bigSize}"  value="2000" oninput="updateSizeFromInput()">
+            </div>
+            </div>
+
+
+            <label for="numRooms">Number of Rooms</label>
+            <input id="numRooms" name="numRooms" type="number"/>
+
+
+            <label for="advertisementType">Rent/Buy</label>
+            <select id="advertisementType" name="advertisementType">
+                <option value="">All</option>
+                <option th:each="type:${types}" th:value="${type.name()}" th:text="${type.name()}">[postType]</option>
+            </select>
+
+            <button id="filter" type="submit">Filter</button>
+        </form>
+    </div>
+
+
+    <div class="content-container">
+
+        <div class="card-container">
+            <div class="card" th:each="ad:${ads}">
+                <img th:src="${ad.getApartment().getImageUrls().get(0)}" alt="Apartment Image">
+                <div class="card-content">
+                    <h2 class="card-title">
+                        <span th:text="${ad.getApartment().getTitle()}">Apartment Title</span>
+                        <span class="avg-rating">
+                            &#9733;
+                            <span th:text="${ad.getRatingAvg()}">4.5</span><br>
+                        </span>
+                        <span th:text="'Type: '+ ${ad.getType().name()}+'ING'">
+                        </span>
+                    </h2>
+                    <p class="card-details">
+                        <span th:text="'Price: ' + ${ad.getPrice()} + ' EUR'">Price: $200,000</span><br>
+                        <span th:text="'Size: ' + ${ad.getApartment().getSize()} + ' sqm'">Size: 120 sqm</span><br>
+                        <span th:text="'Rooms: ' + ${ad.getApartment().getNumRooms()}">Rooms: 3</span><br>
+                        <span th:text="${ad.getApartment().getMunicipality().name()}">Municipality Name</span><br>
+                        <span th:text="${ad.getApartment().getAddress()}">123 Main St.</span>
+                    </p>
+                    <div>
+                        <a class="edit-item" th:href="@{'/apartments/details/{id}' (id=${ad.id})}">Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<footer>
+    <p>&copy; 2024 Apartment Finder. All rights reserved.</p>
+</footer>
+
+<script>
+    function toggleFilter() {
+        var filterForm = document.getElementById("filter-form");
+        var dropdownBtn = document.querySelector(".dropdown-btn");
+        if (filterForm.style.display === "none" || filterForm.style.display === "") {
+            filterForm.style.display = "block";
+            dropdownBtn.classList.add("active");
+            dropdownBtn.textContent = "Hide Filters";
+        } else {
+            filterForm.style.display = "none";
+            dropdownBtn.classList.remove("active");
+            dropdownBtn.textContent = "Show Filters";
+        }
+    }
+
+    function updatePriceRange() {
+        const priceMin = document.getElementById('priceMore');
+        const priceMax = document.getElementById('priceLess');
+        const priceMinInput = document.getElementById('priceMinInput');
+        const priceMaxInput = document.getElementById('priceMaxInput');
+
+
+        priceMinInput.value = priceMin.value;
+        priceMaxInput.value = priceMax.value;
+    }
+
+    function updatePriceFromInput() {
+        const priceMin = document.getElementById('priceMore');
+        const priceMax = document.getElementById('priceLess');
+        const priceMinInput = document.getElementById('priceMinInput');
+        const priceMaxInput = document.getElementById('priceMaxInput');
+
+
+        priceMin.value = priceMinInput.value;
+        priceMax.value = priceMaxInput.value;
+    }
+
+    function updateRatingRange() {
+        const ratingMin = document.getElementById('avgRatingMore');
+        const ratingMax = document.getElementById('avgRatingLess');
+        const ratingMinInput = document.getElementById('ratingMinInput');
+        const ratingMaxInput = document.getElementById('ratingMaxInput');
+
+        ratingMinInput.value = ratingMin.value;
+        ratingMaxInput.value = ratingMax.value;
+    }
+
+    function updateRatingFromInput() {
+        const ratingMin = document.getElementById('avgRatingMore');
+        const ratingMax = document.getElementById('avgRatingLess');
+        const ratingMinInput = document.getElementById('ratingMinInput');
+        const ratingMaxInput = document.getElementById('ratingMaxInput');
+
+
+        ratingMin.value = ratingMinInput.value;
+        ratingMax.value = ratingMaxInput.value;
+    }
+
+    function updateSizeRange(){
+        const sizeMin = document.getElementById('sizeMore');
+        const sizeMax = document.getElementById('sizeLess');
+        const sizeMinInput= document.getElementById('sizeMinInput')
+        const sizeMaxInput= document.getElementById('sizeMaxInput')
+
+        sizeMinInput.value=sizeMin.value;
+        sizeMaxInput.value=sizeMax.value;
+    }
+
+    function updateSizeFromInput(){
+        const sizeMin = document.getElementById('sizeMore');
+        const sizeMax = document.getElementById('sizeLess');
+        const sizeMinInput= document.getElementById('sizeMinInput')
+        const sizeMaxInput= document.getElementById('sizeMaxInput')
+
+        sizeMin.value=sizeMinInput.value;
+        sizeMax.value=sizeMaxInput.value;
+    }
+</script>
+
+</body>
+</html>

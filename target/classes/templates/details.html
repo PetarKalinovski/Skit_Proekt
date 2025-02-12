@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Apartment Details</title>
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding-top: 30px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .image-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .image-gallery img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .image-gallery img:hover {
+            transform: scale(1.05);
+        }
+
+        .details-section {
+            padding: 20px;
+            color: #555;
+        }
+
+        .details-section p {
+            margin: 10px 0;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .advertisement-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .rating-stars {
+            color: #FFD700; /* Gold color for stars */
+            margin-left: 5px;
+        }
+
+        .comment-section {
+            margin-top: 20px;
+        }
+
+        .comment {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .lightbox-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 80%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+        }
+
+
+        .lightbox-prev, .lightbox-next {
+            cursor: pointer;
+            position: fixed;
+            top: 50%;
+            width: auto;
+            padding: 16px;
+            margin-top: -22px;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 24px;
+            transition: 0.3s;
+            user-select: none;
+        }
+
+        .lightbox-prev {
+            left: 20px;
+        }
+
+        .lightbox-next {
+            right: 20px;
+        }
+
+        .lightbox-prev:hover, .lightbox-next:hover {
+            color: #dddddd;
+        }
+
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 30px;
+            color: #ccc;
+            padding: 0 5px;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #FFD700;
+        }
+
+        footer {
+            background-color: #007BFF;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            width: 100%;
+            bottom: 0;
+            position: relative;
+            margin-top: 10px;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        .toolbar {
+            background-color: #007BFF;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .toolbar-left a, .toolbar-right a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-size: 16px;
+        }
+
+        .toolbar-left a:first-child {
+            margin-left: 0;
+        }
+
+        .toolbar-right a:hover {
+            text-decoration: underline;
+        }
+        .toolbar-right{
+            margin-right: 30px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+         button:hover {
+            background-color: #0056b3;
+        }
+        .add-rating form {
+            text-align: center;
+        }
+
+        .add-comment {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .add-comment h2 {
+            margin-bottom: 15px;
+            font-size: 24px;
+            color: #333;
+        }
+
+
+        .add-comment textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+
+        .admit-buttons {
+            position: absolute;
+            right: 20px;
+            top: 150px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admit-buttons .card-actions {
+            margin-bottom: 10px;
+        }
+
+        .admit-buttons button.delete-item {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .admit-buttons button.delete-item:hover {
+            background-color: #c82333;
+        }
+
+        .admit-buttons .edit-item {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .admit-buttons .edit-item:hover {
+            background-color: #218838;
+        }
+
+
+        .btn-3 a {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-3 a:hover {
+                      background-color: #0056b3;
+                  }
+
+
+        .container {
+            position: relative;
+            padding-right: 120px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <div class="toolbar-left">
+        <a id="home" href="/apartments" type="button" class="btn btn-primary">Home</a>
+    </div>
+    <div class="toolbar-right">
+        <a href="/login" sec:authorize="!isAuthenticated()">Login</a>
+        <a href="/register" sec:authorize="!isAuthenticated()">Register</a>
+        <a href="/apartments/add/ad">Add an Ad</a>
+        <a href="/logout" sec:authorize="isAuthenticated()">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Apartment Title -->
+    <h1 th:text="${ad.getApartment().getTitle()}">Apartment Title</h1>
+
+    <!-- Image Gallery -->
+    <div class="image-gallery">
+        <div th:each="image : ${ad.getApartment().getImageUrls()}">
+            <a href="#" th:href="@{${image}}" class="image-link">
+                <img th:src="@{${image}}">
+            </a>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" id="lightbox-close">&times;</span>
+        <div class="lightbox-content">
+            <span class="lightbox-prev" id="lightbox-prev">&#10094;</span>
+            <img id="lightbox-img" src="" alt="Large view">
+            <span class="lightbox-next" id="lightbox-next">&#10095;</span>
+        </div>
+    </div>
+
+
+    <!-- Apartment Details -->
+    <div class="details-section">
+        <h2>Apartment Details</h2>
+        <p><strong>Municipality:</strong> <span th:text="${ad.getApartment().getMunicipality().name()}">Municipality Name</span></p>
+        <p><strong>Address:</strong> <span th:text="${ad.getApartment().getAddress()}">123 Main St.</span></p>
+        <p><strong>Number of Rooms:</strong> <span th:text="${ad.getApartment().getNumRooms()}">3</span></p>
+        <p><strong>Size:</strong> <span th:text="${ad.getApartment().getSize()}">120</span> sqm</p>
+    </div>
+
+    <!-- Advertisement Details -->
+    <div class="advertisement-section">
+        <h2>Advertisement Details</h2>
+        <p><strong>Type:</strong> <span th:text="${ad.getType().name()}">Rent</span></p>
+        <p><strong>Price:</strong> <span th:text="${ad.getPrice()}">200,000</span> EUR</p>
+        <p><strong>Average Rating:</strong>
+            <span th:text="${ad.getRatingAvg()}">4.5</span>
+            <span class="rating-stars">&#9733;</span> <!-- Star Icon -->
+        </p>
+
+        <!-- Star Rating Section -->
+        <div class="add-rating">
+            <h2>Rate this Apartment</h2>
+            <form method="post" action="#" th:action="@{/apartments/rate/{id}(id=${ad.id})}">
+                <div class="star-rating">
+                    <input type="radio" id="5-stars" name="rating" value="5">
+                    <label for="5-stars">&#9733;</label>
+                    <input type="radio" id="4-stars" name="rating" value="4">
+                    <label for="4-stars">&#9733;</label>
+                    <input type="radio" id="3-stars" name="rating" value="3">
+                    <label for="3-stars">&#9733;</label>
+                    <input type="radio" id="2-stars" name="rating" value="2">
+                    <label for="2-stars">&#9733;</label>
+                    <input type="radio" id="1-star" name="rating" value="1">
+                    <label for="1-star">&#9733;</label>
+                </div>
+                <button class="btn-1" type="submit">Submit Rating</button>
+            </form>
+        </div>
+
+        <!-- Comments -->
+        <div class="comment-section">
+            <h2>User Comments</h2>
+            <div th:each="comment : ${ad.getComments()}">
+                <div class="comment">
+                    <p th:text="${comment}">This is a great apartment!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-comment">
+            <h2>Add a Comment</h2>
+            <form method="post" action="#" th:action="@{/apartments/comments/{id}(id=${ad.id})}">
+                <textarea name="comment" rows="4" cols="50" placeholder="Write your comment here..." required></textarea>
+                <button type="submit">Submit Comment</button>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="btn-3">
+    <a th:if="${ad.getOwner().getUsername() != #authentication.name}" class="chat-owner" th:href="@{'/messages/conversation/{id}'(id=${threadId})}">Chat with the owner</a>
+
+    <a th:if="${ad.getOwner().getUsername() == #authentication.name}" class="see-messages" th:href="@{'/messages/conversation/all/{id}'(id=${ad.getId()})}">See messages</a>
+    </div>
+
+</div>
+
+<div class="admit-buttons">
+    <div class="card-actions" sec:authorize="hasRole('ROLE_ADMIN')">
+        <form method="post" th:action="@{'/apartments/delete/ad/{id}'(id=${ad.id})}">
+            <button type="submit" class="delete-item">Delete advertisement</button>
+        </form>
+    </div>
+    <div class="card-actions" th:if="${ad.getOwner().getUsername() == #authentication.name}" sec:authorize="!hasRole('ROLE_ADMIN')">
+        <form method="post" th:action="@{'/apartments/delete/ad/{id}'(id=${ad.id})}">
+            <button type="submit" class="delete-item">Delete advertisement</button>
+        </form>
+    </div>
+    <div class="card-actions" th:if="${ad.getOwner()!=null}">
+        <div th:if="${ad.getOwner().getUsername() == #authentication.name}">
+            <a class="edit-item" th:href="@{'/apartments/edit/ad/{id}'(id=${ad.id})}">Edit advertisement</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2024 Apartment Finder. All rights reserved.</p>
+</footer>
+
+<script>
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const closeBtn = document.getElementById('lightbox-close');
+    const prevBtn = document.getElementById('lightbox-prev');
+    const nextBtn = document.getElementById('lightbox-next');
+    const imageLinks = document.querySelectorAll('.image-link');
+
+    let currentImageIndex = 0;
+    const imageArray = Array.from(imageLinks).map(link => link.href);
+
+    imageLinks.forEach((link, index) => {
+        link.addEventListener('click', function (event) {
+            event.preventDefault();
+            currentImageIndex = index;
+            openLightbox(imageArray[currentImageIndex]);
+        });
+    });
+
+    closeBtn.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', function (event) {
+        if (event.target === lightbox) {
+            closeLightbox();
+        }
+    });
+
+    prevBtn.addEventListener('click', function () {
+        currentImageIndex = (currentImageIndex === 0) ? imageArray.length - 1 : currentImageIndex - 1;
+        openLightbox(imageArray[currentImageIndex]);
+    });
+
+    nextBtn.addEventListener('click', function () {
+        currentImageIndex = (currentImageIndex === imageArray.length - 1) ? 0 : currentImageIndex + 1;
+        openLightbox(imageArray[currentImageIndex]);
+    });
+
+    function openLightbox(imageSrc) {
+        lightbox.style.display = 'flex';
+        lightboxImg.src = imageSrc;
+    }
+
+    function closeLightbox() {
+        lightbox.style.display = 'none';
+    }
+
+</script>
+
+
+</body>
+
+
+</html>
