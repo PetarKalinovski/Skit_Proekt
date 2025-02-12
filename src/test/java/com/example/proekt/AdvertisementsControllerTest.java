@@ -8,28 +8,30 @@ import com.example.proekt.service.UserService;
 import com.example.proekt.web.AdvertismentsController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.security.Principal;
+import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = AdvertismentsController.class)
+@WebMvcTest(controllers = {AdvertismentsController.class})
 public class AdvertisementsControllerTest {
 
     @Autowired
@@ -53,8 +55,12 @@ public class AdvertisementsControllerTest {
     private Apartment testApartment;
     private User testUser;
 
+    private AdvertismentsController controller;
+
     @BeforeEach
     void setUp() {
+        controller= new AdvertismentsController(advertisementService,apartmentService,userService,messageThreadService);
+
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -117,21 +123,62 @@ public class AdvertisementsControllerTest {
                 .andExpect(model().attributeExists("types"));
         }
 
-        @Test
-        @WithMockUser(username = "testuser", roles = "USER")
-        void testCreateAdvertisement() throws Exception {
-            when(advertisementService.create(eq(1L), eq(AdvertisementType.SELL),
-                    eq(100000.0), eq("testuser")))
-                    .thenReturn(testAdvertisement);
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void whenFilteringAds_thenAllFilterParametersAreCorrectlyApplied() throws Exception {
+        ArgumentCaptor<Double> priceMoreCaptor = ArgumentCaptor.forClass(Double.class);
+        ArgumentCaptor<Double> priceLessCaptor = ArgumentCaptor.forClass(Double.class);
+        ArgumentCaptor<MunicipalityType> municipalityCaptor = ArgumentCaptor.forClass(MunicipalityType.class);
 
-            mockMvc.perform(post("/apartments")
-                            .with(SecurityMockMvcRequestPostProcessors.csrf())
-                            .param("apartment", "1")
-                            .param("type", "SELL")
-                            .param("price", "100000.0"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/apartments"));
-        }
+        when(advertisementService.filter(
+                priceMoreCaptor.capture(),
+                priceLessCaptor.capture(),
+                municipalityCaptor.capture(),
+                any(), any(), any(), any(), any(), any(), any()
+        )).thenReturn(Collections.singletonList(testAdvertisement));
+
+        mockMvc.perform(get("/apartments")
+                        .param("priceMore", "50000.0")
+                        .param("priceLess", "150000.0")
+                        .param("municipality", "Center")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk());
+
+        assertEquals(50000.0, priceMoreCaptor.getValue());
+        assertEquals(150000.0, priceLessCaptor.getValue());
+        assertEquals(MunicipalityType.Center, municipalityCaptor.getValue());
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void createAd() throws Exception {
+        ArgumentCaptor<Long> apartmentIdCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<AdvertisementType> typeCaptor = ArgumentCaptor.forClass(AdvertisementType.class);
+        ArgumentCaptor<Double> priceCaptor = ArgumentCaptor.forClass(Double.class);
+        ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
+
+        when(advertisementService.create(
+                apartmentIdCaptor.capture(),
+                typeCaptor.capture(),
+                priceCaptor.capture(),
+                usernameCaptor.capture()
+        )).thenReturn(testAdvertisement);
+
+        mockMvc.perform(post("/apartments")
+                        .param("apartment", "1")
+                        .param("type", "SELL")
+                        .param("price", "100000.0")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().is3xxRedirection());
+
+        assertEquals(1L, apartmentIdCaptor.getValue());
+        assertEquals(AdvertisementType.SELL, typeCaptor.getValue());
+        assertEquals(100000.0, priceCaptor.getValue());
+        assertEquals("testuser", usernameCaptor.getValue());
+
+        // Verify service was called exactly once
+        verify(advertisementService, times(1)).create(any(), any(), any(), any());
+    }
 
         @Test
         @WithMockUser(username = "testuser", roles = "USER")
@@ -149,6 +196,49 @@ public class AdvertisementsControllerTest {
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/apartments"));
         }
+
+
+//    @Test
+//    @WithMockUser(username = "testuser", roles = "USER")
+//    void editAdWrongUser() throws Exception {
+//        User differentUser = new User("different", "pwd", Role.ROLE_USER);
+//        testAdvertisement.setOwner(differentUser);
+//
+//        when(advertisementService.findById(1L)).thenReturn(testAdvertisement);
+//        when(userService.findByUsername("testuser")).thenReturn(testUser);
+//
+//        mockMvc.perform(post("/apartments/1")
+//                        .param("apartment", "1")
+//                        .param("type", "RENT")
+//                        .param("price", "90000.0")
+//                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+//                .andExpect(result -> assertTrue(result.getResolvedException() instanceof AccessDeniedException))
+//                .andExpect(result -> assertEquals(
+//                        "You do not have permission to edit this advertisement",
+//                        result.getResolvedException().getMessage()
+//                ));
+//
+//
+//        verify(advertisementService, never()).update(any(), any(), any(), any());
+//    }
+
+    @Test
+    void editAdWrongUser() {
+        User differentUser = new User("different", "pwd", Role.ROLE_USER);
+        testAdvertisement.setOwner(differentUser);
+
+        when(advertisementService.findById(1L)).thenReturn(testAdvertisement);
+        when(userService.findByUsername("testuser")).thenReturn(testUser);
+
+        Principal principal = () -> "testuser";
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () ->
+                controller.editAd(1L, 1L, AdvertisementType.RENT, 90000.0, principal)
+        );
+
+        assertEquals("You do not have permission to edit this advertisement", exception.getMessage());
+        verify(advertisementService, never()).update(any(), any(), any(), any());
+    }
 
         @Test
         @WithMockUser(username = "testuser", roles = "USER")
@@ -175,6 +265,18 @@ public class AdvertisementsControllerTest {
                     .andExpect(redirectedUrl("/apartments/details/1"));
         }
 
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void testAddInvalidRating() throws Exception {
+        mockMvc.perform(post("/apartments/rate/{id}", 1L)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .param("rating", "6.0"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/apartments/details/1"));
+
+        verify(advertisementService, never()).addRating(any(), any(), any());
+    }
+
         @Test
         @WithMockUser(username = "testuser", roles = "USER")
         void testAddComment() throws Exception {
@@ -187,4 +289,90 @@ public class AdvertisementsControllerTest {
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/apartments/details/1"));
         }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void testAddEmptyComment() throws Exception {
+        mockMvc.perform(post("/apartments/comments/{id}", 1L)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .param("comment", "   "))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/apartments/details/1"));
+
+        verify(advertisementService, never()).addComment(any(), any());
     }
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void testShowAdd() throws Exception {
+        List<Apartment> apartments = Arrays.asList(testApartment);
+        when(apartmentService.listAll()).thenReturn(apartments);
+
+        mockMvc.perform(get("/apartments/add/ad")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("adForm"))
+                .andExpect(model().attributeExists("apartments"))
+                .andExpect(model().attributeExists("municipalities"))
+                .andExpect(model().attributeExists("types"))
+                .andExpect(model().attribute("user", "testuser"));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void testShowEdit() throws Exception {
+        when(advertisementService.findById(1L)).thenReturn(testAdvertisement);
+        when(apartmentService.listAll()).thenReturn(Arrays.asList(testApartment));
+
+        mockMvc.perform(get("/apartments/edit/ad/{id}", 1L)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("adForm"))
+                .andExpect(model().attributeExists("ad"))
+                .andExpect(model().attributeExists("apartments"))
+                .andExpect(model().attributeExists("municipalities"))
+                .andExpect(model().attributeExists("types"));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void testDetailsApartments_NewMessageThread() throws Exception {
+        when(advertisementService.findById(1L)).thenReturn(testAdvertisement);
+        when(apartmentService.listAll()).thenReturn(Arrays.asList(testApartment));
+        when(messageThreadService.findByUser1AndUser2AndAdvertisement("testuser", "testuser", 1L))
+                .thenReturn(null);
+
+        MessageThread newThread = new MessageThread();
+        newThread.setId(1L);
+        when(messageThreadService.create("testuser", "testuser", 1L)).thenReturn(newThread);
+
+        mockMvc.perform(get("/apartments/details/{id}", 1L)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("details"))
+                .andExpect(model().attributeExists("ad"))
+                .andExpect(model().attributeExists("apartments"))
+                .andExpect(model().attributeExists("municipalities"))
+                .andExpect(model().attributeExists("types"))
+                .andExpect(model().attribute("threadId", 1L));
+    }
+
+    @Test
+    @WithMockUser(username = "testuser", roles = "USER")
+    void testDetailsApartments_ExistingMessageThread() throws Exception {
+        when(advertisementService.findById(1L)).thenReturn(testAdvertisement);
+        when(apartmentService.listAll()).thenReturn(Arrays.asList(testApartment));
+
+        MessageThread existingThread = new MessageThread();
+        existingThread.setId(1L);
+        when(messageThreadService.findByUser1AndUser2AndAdvertisement("testuser", "testuser", 1L))
+                .thenReturn(existingThread);
+
+        mockMvc.perform(get("/apartments/details/{id}", 1L)
+                        .with(SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("details"))
+                .andExpect(model().attributeExists("ad"))
+                .andExpect(model().attribute("threadId", 1L));
+    }
+
+}
