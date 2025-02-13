@@ -114,16 +114,20 @@ public class AdvertisementsControllerTest {
                 .andExpect(model().attributeExists("ads"))
                 .andExpect(model().attribute("ads", advertisements))
                 .andExpect(model().attributeExists("smallSize"))
+                .andExpect(model().attribute("smallSize", 75))
                 .andExpect(model().attributeExists("bigSize"))
+                .andExpect(model().attribute("bigSize", 150))
                 .andExpect(model().attributeExists("smallPrice"))
+                .andExpect(model().attribute("smallPrice", 100000.0))
                 .andExpect(model().attributeExists("bigPrice"))
+                .andExpect(model().attribute("bigPrice", 200000.0))
                 .andExpect(model().attributeExists("municipalities"))
                 .andExpect(model().attributeExists("types"));
         }
 
     @Test
     @WithMockUser(username = "testuser", roles = "USER")
-    void whenFilteringAds_thenAllFilterParametersAreCorrectlyApplied() throws Exception {
+    void filterAdsWithFilter() throws Exception {
         ArgumentCaptor<Double> priceMoreCaptor = ArgumentCaptor.forClass(Double.class);
         ArgumentCaptor<Double> priceLessCaptor = ArgumentCaptor.forClass(Double.class);
         ArgumentCaptor<MunicipalityType> municipalityCaptor = ArgumentCaptor.forClass(MunicipalityType.class);
