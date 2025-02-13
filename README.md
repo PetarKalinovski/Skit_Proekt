@@ -1,4 +1,4 @@
-# Creating tests for a springboot app using TestContext Framework and Mochito.
+# Creating tests for a springboot app using MockMvc and Mochito.
 
 Almost every part of the app is covered by tests.
 
