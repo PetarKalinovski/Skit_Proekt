@@ -45,7 +45,6 @@ public class ApartmentsControllerTest {
                 .apply(springSecurity())
                 .build();
 
-        // Initialize test data
         testUser = new User("testuser", "password", Role.ROLE_USER);
 
         testApartment = new Apartment();

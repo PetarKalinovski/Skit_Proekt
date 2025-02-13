@@ -78,7 +78,10 @@ class AdvertisementServiceTest {
         assertEquals(testUser, testAdvertisement.getOwner());
 
         Advertisement persistedAd = advertisementService.findById(testAdvertisement.getId());
+        assertEquals(testApartment, persistedAd.getApartment());
         assertEquals(AdvertisementType.SELL, persistedAd.getType());
+        assertEquals(100000.0, persistedAd.getPrice());
+        assertEquals(testUser, persistedAd.getOwner());
     }
 
     @Test
@@ -219,12 +222,22 @@ class AdvertisementServiceTest {
         List<Advertisement> centerAds = advertisementService.filter(
                 null, null, MunicipalityType.Center, null, null, null,
                 null, null, null, null);
-        assertEquals(2, centerAds.size()); // Original ad and one from test data
+        assertEquals(2, centerAds.size());
 
         List<Advertisement> aerodromAds = advertisementService.filter(
                 null, null, MunicipalityType.Aerodrom, null, null, null,
                 null, null, null, null);
         assertEquals(1, aerodromAds.size());
+
+        List<Advertisement> butelAds = advertisementService.filter(
+                null, null, MunicipalityType.Butel, null, null, null,
+                null, null, null, null);
+        assertEquals(1, butelAds.size());
+
+        List<Advertisement> karposhAds = advertisementService.filter(
+                null, null, MunicipalityType.Karposh, null, null, null,
+                null, null, null, null);
+        assertEquals(0, karposhAds.size());
     }
 
     @Test
@@ -332,7 +345,6 @@ class AdvertisementServiceTest {
 
     @Test
     void testMinMaxValues() {
-        // Create additional advertisement with different values
         List<String> imageUrls = new ArrayList<>();
         imageUrls.add("image.jpg");
 

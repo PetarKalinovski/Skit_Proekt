@@ -66,7 +66,6 @@ public class AdvertisementsControllerTest {
                 .apply(springSecurity())
                 .build();
 
-        // Initialize test data
         testUser = new User("testuser", "password", Role.ROLE_USER);
 
         testApartment = new Apartment();
@@ -92,7 +91,6 @@ public class AdvertisementsControllerTest {
         ratings.put("user2", 5.0);
         testAdvertisement.setRatings(ratings);
 
-        // Set up common mock behaviors
         when(userService.findByUsername("testuser")).thenReturn(testUser);
     }
 
@@ -176,7 +174,6 @@ public class AdvertisementsControllerTest {
         assertEquals(100000.0, priceCaptor.getValue());
         assertEquals("testuser", usernameCaptor.getValue());
 
-        // Verify service was called exactly once
         verify(advertisementService, times(1)).create(any(), any(), any(), any());
     }
 
